@@ -19,7 +19,6 @@ package com.example.android.advancedcoroutines.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.android.advancedcoroutines.domain.model.GrowZone
 import com.example.android.advancedcoroutines.domain.model.NoGrowZone
@@ -28,12 +27,14 @@ import com.example.android.advancedcoroutines.domain.usecases.GetPlantsUseCase
 import com.example.android.advancedcoroutines.domain.usecases.UpdatePlantsCacheUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 /**
@@ -76,9 +77,14 @@ class PlantListViewModel @Inject constructor(
     /**
      * A list of plants that updates based on the current filter.
      */
-    val plantsFlow: LiveData<List<Plant>> = growZoneFlow
-        .flatMapLatest { getPlantsUseCase(it) }
-        .asLiveData()
+    val plantsState =
+        growZoneFlow
+            .flatMapLatest { getPlantsUseCase(it) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = emptyList()
+            )
 
     init {
         // When creating a new ViewModel, clear the grow zone and perform any related udpates

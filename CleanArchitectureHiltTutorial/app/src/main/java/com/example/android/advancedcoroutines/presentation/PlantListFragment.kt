@@ -25,11 +25,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.android.advancedcoroutines.R
 import com.example.android.advancedcoroutines.databinding.FragmentPlantListBinding
 import com.example.android.advancedcoroutines.ui.PlantAdapter
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class PlantListFragment : Fragment() {
@@ -59,7 +63,13 @@ class PlantListFragment : Fragment() {
 
         val adapter = PlantAdapter()
         binding.plantList.adapter = adapter
-        subscribeUi(adapter)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+               viewModel.plantsState.collect {
+                    adapter.submitList(it)
+               }
+            }
+        }
 
         setHasOptionsMenu(true)
 
@@ -79,12 +89,6 @@ class PlantListFragment : Fragment() {
                 true
             }
             else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    private fun subscribeUi(adapter: PlantAdapter) {
-        viewModel.plantsFlow.observe(viewLifecycleOwner) { plants ->
-            adapter.submitList(plants)
         }
     }
 
