@@ -24,7 +24,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.android.advancedcoroutines.domain.model.GrowZone
 import com.example.android.advancedcoroutines.domain.model.NoGrowZone
 import com.example.android.advancedcoroutines.domain.model.Plant
-import com.example.android.advancedcoroutines.domain.repository.IPlantRepository
+import com.example.android.advancedcoroutines.domain.usecases.GetPlantsUseCase
+import com.example.android.advancedcoroutines.domain.usecases.UpdatePlantsCacheUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +41,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class PlantListViewModel @Inject constructor(
-    private val plantRepository: IPlantRepository
+    private val getPlantsUseCase: GetPlantsUseCase,
+    private val updatePlantsCacheUseCase: UpdatePlantsCacheUseCase
 ) : ViewModel() {
 
     /**
@@ -74,24 +76,15 @@ class PlantListViewModel @Inject constructor(
     /**
      * A list of plants that updates based on the current filter.
      */
-    val plantsFlow: LiveData<List<Plant>> = growZoneFlow.flatMapLatest { growZone ->
-        if (growZone == NoGrowZone) {
-            plantRepository.getPlants()
-        } else {
-
-            plantRepository.getPlansWithGrowZoneFlow(growZone)
-        }
-    }.asLiveData()
+    val plantsFlow: LiveData<List<Plant>> = growZoneFlow
+        .flatMapLatest { getPlantsUseCase(it) }
+        .asLiveData()
 
     init {
         // When creating a new ViewModel, clear the grow zone and perform any related udpates
         clearGrowZoneNumber()
         loadDataFor(growZoneFlow) {
-            if (it == NoGrowZone) {
-                plantRepository.tryUpdateRecentPlantsCache()
-            } else {
-                plantRepository.tryUpdateRecentPlantsForGrowZoneCache(it)
-            }
+            updatePlantsCacheUseCase(it)
         }
     }
 

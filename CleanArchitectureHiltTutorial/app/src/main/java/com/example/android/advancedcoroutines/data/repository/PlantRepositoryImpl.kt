@@ -1,8 +1,6 @@
 package com.example.android.advancedcoroutines.data.repository
 
-import androidx.annotation.AnyThread
 import com.example.android.advancedcoroutines.core.CacheOnSuccess
-import com.example.android.advancedcoroutines.core.ComparablePair
 import com.example.android.advancedcoroutines.data.local.PlantDao
 import com.example.android.advancedcoroutines.data.remote.PlantDataSource
 import com.example.android.advancedcoroutines.data.remote.SunflowerApi
@@ -12,11 +10,6 @@ import com.example.android.advancedcoroutines.domain.repository.IPlantRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -32,21 +25,8 @@ class PlantRepositoryImpl @Inject constructor (
      * Fetch a list of [Plant]s from the database.
      * Returns a LiveData-wrapped List of Plants.
      */
-    val plantsFlow: Flow<List<Plant>>
-        get() = plantDao.getPlantsFlow()
-            .combine(customSortFlow) { plantsFlow, sortFlow ->
-                plantsFlow.applySort(sortFlow)
-            }
-            .flowOn(defaultDispatcher)
-            .conflate()
-
     override fun getPlants(): Flow<List<Plant>> {
         return plantDao.getPlantsFlow()
-            .combine(customSortFlow) { plantsFlow, sortFlow ->
-                plantsFlow.applySort(sortFlow)
-            }
-            .flowOn(defaultDispatcher)
-            .conflate()
     }
 
     /**
@@ -55,9 +35,6 @@ class PlantRepositoryImpl @Inject constructor (
      */
     override fun getPlansWithGrowZoneFlow(growZone: GrowZone) =
         plantDao.getPlantsWithGrowZoneNumberFlow(growZone.number)
-            .map {
-                it.applyMainSafeSort(plantsListSortOrderCache.getOrAwait())
-            }
 
     /**
      * Returns true if we should make a network request.
@@ -87,6 +64,8 @@ class PlantRepositoryImpl @Inject constructor (
         if (shouldUpdatePlantsCache()) fetchPlantsForGrowZone(growZoneNumber)
     }
 
+    override fun getPlantsListSortOrderCache(): CacheOnSuccess<List<String>> = plantsListSortOrderCache
+
     /**
      * Fetch a new list of plants from the network, and append them to [plantDao]
      */
@@ -111,22 +90,4 @@ class PlantRepositoryImpl @Inject constructor (
         CacheOnSuccess(onErrorFallback = { emptyList() }) {
             plantDataSource.customPlantSortOrder()
         }
-
-    private fun List<Plant>.applySort(customSortOrder: List<String>): List<Plant> {
-        return sortedBy { plant ->
-            val positionForItem = customSortOrder.indexOf(plant.plantId).let { order ->
-                if (order > -1) order else Int.MAX_VALUE
-            }
-            ComparablePair(positionForItem, plant.name)
-        }
-    }
-
-    private val customSortFlow = flow { emit(plantsListSortOrderCache.getOrAwait()) }
-
-    @AnyThread
-    suspend fun List<Plant>.applyMainSafeSort(customSortOrder: List<String>) =
-        withContext(defaultDispatcher) {
-            this@applyMainSafeSort.applySort(customSortOrder)
-        }
-
 }
