@@ -3,11 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.MainActivity">
+    tools:context=".presentation.plantlist.MainActivity">
 
     <fragment
         android:id="@+id/main_fragment"
-        android:name="com.example.android.advancedcoroutines.ui.PlantListFragment"
+        android:name="com.example.android.advancedcoroutines.presentation.plantlist.PlantListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

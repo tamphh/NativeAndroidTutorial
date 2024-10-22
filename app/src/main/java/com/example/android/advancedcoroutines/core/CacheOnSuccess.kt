@@ -1,4 +1,4 @@
-package com.example.android.advancedcoroutines.utils
+package com.example.android.advancedcoroutines.core
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred

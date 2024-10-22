@@ -1,4 +1,4 @@
-package com.example.android.advancedcoroutines.utils
+package com.example.android.advancedcoroutines.data.remote
 
 sealed class NetworkResult<out T>
 

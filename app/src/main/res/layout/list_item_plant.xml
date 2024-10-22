@@ -21,7 +21,7 @@
     <data>
         <variable
             name="plant"
-            type="com.example.android.advancedcoroutines.Plant"/>
+            type="com.example.android.advancedcoroutines.domain.model.Plant"/>
     </data>
 
     <com.example.android.advancedcoroutines.ui.MaskedCardView

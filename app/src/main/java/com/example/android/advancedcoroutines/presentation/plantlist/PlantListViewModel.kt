@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package com.example.android.advancedcoroutines
+package com.example.android.advancedcoroutines.presentation.plantlist
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Job
+import com.example.android.advancedcoroutines.domain.model.GrowZone
+import com.example.android.advancedcoroutines.domain.model.NoGrowZone
+import com.example.android.advancedcoroutines.domain.model.Plant
+import com.example.android.advancedcoroutines.domain.repository.IPlantRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -30,13 +33,14 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * The [ViewModel] for fetching a list of [Plant]s.
  */
-class PlantListViewModel internal constructor(
-    private val plantRepository: PlantRepository
+@HiltViewModel
+class PlantListViewModel @Inject constructor(
+    private val plantRepository: IPlantRepository
 ) : ViewModel() {
 
     /**
@@ -65,23 +69,14 @@ class PlantListViewModel internal constructor(
     /**
      * The current growZone selection.
      */
-//    private val growZone = MutableLiveData<GrowZone>(NoGrowZone)
     private val growZoneFlow = MutableStateFlow(NoGrowZone)
 
     /**
      * A list of plants that updates based on the current filter.
      */
-    /*val plants: LiveData<List<Plant>> = growZone.switchMap { growZone ->
-        if (growZone == NoGrowZone) {
-            plantRepository.plants
-        } else {
-            plantRepository.getPlantsWithGrowZone(growZone)
-        }
-    }*/
-
     val plantsFlow: LiveData<List<Plant>> = growZoneFlow.flatMapLatest { growZone ->
         if (growZone == NoGrowZone) {
-            plantRepository.plantsFlow
+            plantRepository.getPlants()
         } else {
 
             plantRepository.getPlansWithGrowZoneFlow(growZone)
@@ -91,18 +86,6 @@ class PlantListViewModel internal constructor(
     init {
         // When creating a new ViewModel, clear the grow zone and perform any related udpates
         clearGrowZoneNumber()
-
-        /*growZoneFlow.mapLatest {
-            _spinner.value = true
-            if (it == NoGrowZone) {
-                plantRepository.tryUpdateRecentPlantsCache()
-            } else {
-                plantRepository.tryUpdateRecentPlantsForGrowZoneCache(it)
-            }
-        }
-            .onEach { _spinner.value = false }
-            .catch { throwable -> _snackbar.value = throwable.message }
-            .launchIn(viewModelScope)*/
         loadDataFor(growZoneFlow) {
             if (it == NoGrowZone) {
                 plantRepository.tryUpdateRecentPlantsCache()
@@ -120,9 +103,6 @@ class PlantListViewModel internal constructor(
      */
     fun setGrowZoneNumber(num: Int) {
         growZoneFlow.value = GrowZone(num)
-
-        // initial code version, will move during flow rewrite
-//        launchDataLoad { plantRepository.tryUpdateRecentPlantsCache() }
     }
 
     /**
@@ -133,9 +113,6 @@ class PlantListViewModel internal constructor(
      */
     fun clearGrowZoneNumber() {
         growZoneFlow.value = NoGrowZone
-
-        // initial code version, will move during flow rewrite
-//        launchDataLoad { plantRepository.tryUpdateRecentPlantsCache() }
     }
 
     /**
@@ -161,19 +138,6 @@ class PlantListViewModel internal constructor(
      *              the lambda, the loading spinner will display. After completion or error, the
      *              loading spinner will stop.
      */
-    private fun launchDataLoad(block: suspend () -> Unit): Job {
-        return viewModelScope.launch {
-            try {
-                _spinner.value = true
-                block()
-            } catch (error: Throwable) {
-                _snackbar.value = error.message
-            } finally {
-                _spinner.value = false
-            }
-        }
-    }
-
     private fun <T> loadDataFor(source: StateFlow<T>, block: suspend (T) -> Unit) {
         source.mapLatest {
             _spinner.value = true

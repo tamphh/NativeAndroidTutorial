@@ -17,12 +17,11 @@
 package com.example.android.advancedcoroutines.ui
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.android.advancedcoroutines.Plant
+import com.example.android.advancedcoroutines.domain.model.Plant
 import com.example.android.advancedcoroutines.databinding.ListItemPlantBinding
 
 /**

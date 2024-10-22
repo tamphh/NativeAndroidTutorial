@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.advancedcoroutines
+package com.example.android.advancedcoroutines.domain.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

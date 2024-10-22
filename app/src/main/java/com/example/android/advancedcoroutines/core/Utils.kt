@@ -1,4 +1,4 @@
-package com.example.android.advancedcoroutines.utils
+package com.example.android.advancedcoroutines.core
 
 data class ComparablePair<A: Comparable<A>, B: Comparable<B>>(
     val first: A,

@@ -1,13 +1,15 @@
 package com.example.android.advancedcoroutines
 
+import com.example.android.advancedcoroutines.data.remote.SunflowerApi
+import com.example.android.advancedcoroutines.domain.model.GrowZone
+import com.example.android.advancedcoroutines.domain.model.Plant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
 
-class NetworkService {
+class NetworkServiceDeprecated {
 
     private val retrofit = Retrofit.Builder()
         .baseUrl("https://raw.githubusercontent.com/")
@@ -15,28 +17,20 @@ class NetworkService {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    private val sunflowerService = retrofit.create(SunflowerService::class.java)
+    private val sunflowerApi = retrofit.create(SunflowerApi::class.java)
 
     suspend fun allPlants(): List<Plant> = withContext(Dispatchers.Default) {
-        val result = sunflowerService.getAllPlants()
+        val result = sunflowerApi.getAllPlants()
         result.shuffled()
     }
 
     suspend fun plantsByGrowZone(growZone: GrowZone) = withContext(Dispatchers.Default) {
-        val result = sunflowerService.getAllPlants()
+        val result = sunflowerApi.getAllPlants()
         result.filter { it.growZoneNumber == growZone.number }.shuffled()
     }
 
     suspend fun customPlantSortOrder(): List<String> = withContext(Dispatchers.Default) {
-        val result = sunflowerService.getCustomPlantSortOrder()
+        val result = sunflowerApi.getCustomPlantSortOrder()
         result.map { plant -> plant.plantId }
     }
-}
-
-interface SunflowerService {
-    @GET("googlecodelabs/kotlin-coroutines/master/advanced-coroutines-codelab/sunflower/src/main/assets/plants.json")
-    suspend fun getAllPlants() : List<Plant>
-
-    @GET("googlecodelabs/kotlin-coroutines/master/advanced-coroutines-codelab/sunflower/src/main/assets/custom_plant_sort_order.json")
-    suspend fun getCustomPlantSortOrder() : List<Plant>
 }

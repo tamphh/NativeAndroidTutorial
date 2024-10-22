@@ -21,19 +21,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
-import com.example.android.advancedcoroutines.utils.CacheOnSuccess
-import com.example.android.advancedcoroutines.utils.ComparablePair
+import com.example.android.advancedcoroutines.data.local.PlantDao
+import com.example.android.advancedcoroutines.domain.model.GrowZone
+import com.example.android.advancedcoroutines.domain.model.Plant
+import com.example.android.advancedcoroutines.core.CacheOnSuccess
+import com.example.android.advancedcoroutines.core.ComparablePair
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 
 /**
@@ -45,9 +45,9 @@ import kotlinx.coroutines.withContext
  * To update the plants cache, call [tryUpdateRecentPlantsForGrowZoneCache] or
  * [tryUpdateRecentPlantsCache].
  */
-class PlantRepository private constructor(
+class PlantRepositoryDeprecated private constructor(
     private val plantDao: PlantDao,
-    private val plantService: NetworkService,
+    private val plantService: NetworkServiceDeprecated,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
 
@@ -144,7 +144,7 @@ class PlantRepository private constructor(
     }
 
     private var plantsListSortOrderCache =
-        CacheOnSuccess(onErrorFallback = { emptyList<String>() }) {
+        CacheOnSuccess(onErrorFallback = { emptyList() }) {
             plantService.customPlantSortOrder()
         }
 
@@ -172,11 +172,11 @@ class PlantRepository private constructor(
     companion object {
 
         // For Singleton instantiation
-        @Volatile private var instance: PlantRepository? = null
+        @Volatile private var instance: PlantRepositoryDeprecated? = null
 
-        fun getInstance(plantDao: PlantDao, plantService: NetworkService) =
+        fun getInstance(plantDao: PlantDao, plantService: NetworkServiceDeprecated) =
             instance ?: synchronized(this) {
-                instance ?: PlantRepository(plantDao, plantService).also { instance = it }
+                instance ?: PlantRepositoryDeprecated(plantDao, plantService).also { instance = it }
             }
     }
 }
