@@ -1,4 +1,4 @@
-package com.example.android.advancedcoroutines.presentation.plantlist
+package com.example.android.advancedcoroutines.presentation
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
