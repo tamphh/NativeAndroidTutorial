@@ -1,6 +1,5 @@
 package org.example
 
-
 object Parser {
     fun parseData (data: List<List<String>>): List<Record> {
         val dataList = mutableListOf<Record>()

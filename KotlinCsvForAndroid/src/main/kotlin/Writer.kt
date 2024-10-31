@@ -1,18 +1,24 @@
 package org.example
+import org.example.Constants.Platform.Android
+import org.example.Constants.Platform.iOS
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 
-
 object Writer {
-    fun writeFile(platform: String, locale: String, records: List<Record>, debugFlag: Boolean = false) {
+    fun writeFile(
+        platform: String,
+        locale: String,
+        records: List<Record>,
+        debugFlag: Boolean = false
+    ) {
         val fileName = getFilename(platform, locale)
         val file = File(fileName)
         val dataWriter = BufferedWriter(FileWriter(file, true))
 
         try {
-            val preText = getPretext(platform)
+            val preText = getPreText(platform)
             dataWriter.write(preText)
             dataWriter.flush()
 
@@ -24,7 +30,6 @@ object Writer {
                 if (data.key.isNotEmpty()) {
                     val formatted = getFormattedEntry(platform, data.key, data.value)
                     dataWriter.write(formatted)
-
                     dataWriter.flush()
 
                     if (debugFlag) {
@@ -33,7 +38,7 @@ object Writer {
                 }
             }
 
-            val postText = getPosttext(platform)
+            val postText = getPostText(platform)
             dataWriter.write(postText)
             dataWriter.flush()
 
@@ -44,43 +49,23 @@ object Writer {
         }
     }
 
-    fun closeFile(platform: String, locale: String, debugFlag: Boolean) {
-        val fileName = getFilename(platform, locale)
-        val file = File(fileName)
-
-        try {
-            val dataWriter = BufferedWriter(FileWriter(file, true))
-
-            val postText = getPosttext(platform)
-            dataWriter.write(postText)
-            dataWriter.flush()
-
-            if (debugFlag && postText.isNotEmpty()) {
-                println("\nWritten $postText to $fileName")
-            }
-            dataWriter.close()
-        } catch (e: IOException) {
-            System.err.println("Failed open file: ${e.message}")
-        }
-    }
-
-    fun getFormattedEntry(platform: String, key: String, value: String): String {
+    private fun getFormattedEntry(platform: String, key: String, value: String): String {
         return when (platform) {
-            "ios" -> "\"$key\" = \"$value\";\n"
-            "android" -> "\t<string name=\"$key\">$value</string>\n"
+            iOS -> "\"$key\" = \"$value\";\n"
+            Android -> "\t<string name=\"$key\">$value</string>\n"
             else -> "$key: \"$value\",\n"
         }
     }
 
-    fun getFilename(platform: String, locale: String): String {
+    private fun getFilename(platform: String, locale: String): String {
         return when (platform) {
-            "ios" -> "Localized_$locale.strings"
-            "android" -> "strings_$locale.xml"
+            iOS -> "Localized_$locale.strings"
+            Android -> "strings_$locale.xml"
             else -> "strings_$locale.ts"
         }
     }
 
-    fun getPretext(platform: String): String {
+    private fun getPreText(platform: String): String {
         return when (platform) {
             "ios" -> ""
             "android" -> "<resources>\n"
@@ -88,7 +73,7 @@ object Writer {
         }
     }
 
-    fun getPosttext(platform: String): String {
+    private fun getPostText(platform: String): String {
         return when (platform) {
             "ios" -> ""
             "android" -> "</resources>"
