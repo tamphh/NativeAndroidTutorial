@@ -54,7 +54,7 @@ object Writer {
         val comment = record.comment
         val androidEntry: (Boolean) -> String = { untranslatable ->
             if (untranslatable) {
-                "\t<string name=\"$key\" translatable=\"false\">$value</string>\n"
+                "\t<string translatable=\"false\" name=\"$key\">$value</string>\n"
             } else {
                 "\t<string name=\"$key\">$value</string>\n"
             }

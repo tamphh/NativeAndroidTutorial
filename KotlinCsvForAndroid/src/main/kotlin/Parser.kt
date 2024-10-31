@@ -26,7 +26,7 @@ object Parser {
                 val locale = localesMap[fieldIndex] ?: continue
                 when(fieldIndex) {
                     commentIndex -> comment = field
-                    untranslatableIndex -> untranslatable = field == "true"
+                    untranslatableIndex -> untranslatable = field.lowercase() == "true"
                     keyIndex -> key = field
                     else -> dataList.add(Record(key, field, locale, untranslatable, comment))
                 }
