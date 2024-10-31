@@ -14,8 +14,7 @@ object Writer {
         debugFlag: Boolean = false
     ) {
         val fileName = getFilename(platform, locale)
-        val file = File(fileName)
-        val dataWriter = BufferedWriter(FileWriter(file, true))
+        val dataWriter = BufferedWriter(FileWriter(fileName))
 
         try {
             val preText = getPreText(platform)
@@ -26,15 +25,13 @@ object Writer {
                 println("Written $preText to $fileName")
             }
 
-            for (data in records) {
-                if (data.key.isNotEmpty()) {
-                    val formatted = getFormattedEntry(platform, data.key, data.value)
-                    dataWriter.write(formatted)
-                    dataWriter.flush()
+            for (record in records) {
+                val formatted = getFormattedEntry(platform, record)
+                dataWriter.write(formatted)
+                dataWriter.flush()
 
-                    if (debugFlag) {
-                        println("\nWritten $formatted to $fileName")
-                    }
+                if (debugFlag) {
+                    println("\nWritten $formatted to $fileName")
                 }
             }
 
@@ -49,20 +46,50 @@ object Writer {
         }
     }
 
-    private fun getFormattedEntry(platform: String, key: String, value: String): String {
+    private fun getFormattedEntry(platform: String, record: Record): String {
+        val key = record.key
+        val value = record.value
+        val comment = record.comment
+        val androidEntry: (Boolean) -> String = { untranslatable ->
+            if (untranslatable) {
+                "\t<string name=\"$key\" translatable=\"false\">$value</string>\n"
+            } else {
+                "\t<string name=\"$key\">$value</string>\n"
+            }
+        }
         return when (platform) {
+            Android -> androidEntry(record.untranslatable)
             iOS -> "\"$key\" = \"$value\";\n"
-            Android -> "\t<string name=\"$key\">$value</string>\n"
             else -> "$key: \"$value\",\n"
+        }.let {
+            if (comment?.isNotEmpty() == true) {
+                "\n\t<!-- $comment -->\n$it"
+            } else {
+                it
+            }
         }
     }
 
     private fun getFilename(platform: String, locale: String): String {
+        val outputFolder = createOutputFolder(platform, locale)
         return when (platform) {
+            Android -> "strings.xml"
             iOS -> "Localized_$locale.strings"
-            Android -> "strings_$locale.xml"
             else -> "strings_$locale.ts"
+        }.let {
+            "$outputFolder/$it"
         }
+    }
+
+    private fun createOutputFolder(platform: String, locale: String): String {
+        val dirName = "output"
+        val folder = when (platform) {
+            Android -> "$dirName/values-$locale"
+            iOS -> dirName
+            else -> dirName
+        }
+        File(folder).mkdirs()
+        return folder
     }
 
     private fun getPreText(platform: String): String {
@@ -75,8 +102,8 @@ object Writer {
 
     private fun getPostText(platform: String): String {
         return when (platform) {
-            "ios" -> ""
-            "android" -> "</resources>"
+            Android -> "</resources>"
+            iOS -> ""
             else -> "}\n\nexport default LOCALIZED_STRINGS;"
         }
     }
