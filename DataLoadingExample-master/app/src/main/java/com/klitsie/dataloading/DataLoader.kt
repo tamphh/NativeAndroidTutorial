@@ -1,5 +1,6 @@
 package com.klitsie.dataloading
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.toList
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 
@@ -204,7 +206,10 @@ private class DefaultDataLoader<T> : DataLoader<T> {
 	) = flow {
 		// Little helper method to observe the data and map it to a LoadingResult
 		val observe: (T) -> Flow<LoadingResult<T>> =
-			{ value -> observeData(value).map(::loadingSuccess) }
+			{ value ->
+				observeData(value)
+					.map(::loadingSuccess)
+			}
 		// Whatever happens, emit the current result
 		emit(currentResult)
 		when {
@@ -213,11 +218,17 @@ private class DefaultDataLoader<T> : DataLoader<T> {
 				val newResult = fetchData(currentResult)
 				emit(newResult.toLoadingResult())
 				// If the fetching is successful, we observe the data and emit it
-				newResult.onSuccess { value -> emitAll(observe(value)) }
+				newResult.onSuccess { value ->
+					Log.e("tamphh", "currentResult.isLoading with value: $value " + observe(value).toList())
+					emitAll(observe(value))
+				}
 			}
 
 			// If the current result is successful, we simply observe and emit the data changes
-			currentResult is LoadingResult.Success -> emitAll(observe(currentResult.value))
+			currentResult is LoadingResult.Success -> {
+				Log.e("tamphh", "LoadingResult.Success with value: $currentResult.value " + observe(currentResult.value).toList())
+				emitAll(observe(currentResult.value))
+			}
 			else -> {
 				// Nothing to do in case of failure and not loading
 			}
