@@ -39,6 +39,8 @@ object Writer {
             dataWriter.write(postText)
             dataWriter.flush()
 
+            println("$fileName finished")
+
         } catch (e: IOException) {
             System.err.println("Failed creating file: ${e.message}")
         } finally {
@@ -74,7 +76,7 @@ object Writer {
         val outputFolder = createOutputFolder(platform, locale)
         return when (platform) {
             Android -> "strings.xml"
-            iOS -> "Localized_$locale.strings"
+            iOS -> "Localizable.strings"
             else -> "strings_$locale.ts"
         }.let {
             "$outputFolder/$it"
@@ -85,7 +87,7 @@ object Writer {
         val dirName = "output"
         val folder = when (platform) {
             Android -> "$dirName/values-$locale"
-            iOS -> dirName
+            iOS -> "$dirName/$locale.lproj"
             else -> dirName
         }
         File(folder).mkdirs()
