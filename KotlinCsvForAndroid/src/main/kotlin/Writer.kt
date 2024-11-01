@@ -50,6 +50,7 @@ object Writer {
 
     private fun getFormattedEntry(platform: String, record: Record): String {
         val key = record.key
+        //val value = StringEscapeUtils.escapeEcmaScript(record.value) // in case of escape special char needed
         val value = record.value
         val comment = record.comment
         val androidEntry: (Boolean) -> String = { untranslatable ->
@@ -84,7 +85,7 @@ object Writer {
     }
 
     private fun createOutputFolder(platform: String, locale: String): String {
-        val dirName = "output"
+        val dirName = "exported"
         val folder = when (platform) {
             Android -> "$dirName/values-$locale"
             iOS -> "$dirName/$locale.lproj"

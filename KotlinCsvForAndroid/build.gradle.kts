@@ -12,6 +12,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("com.jsoizo:kotlin-csv-jvm:1.10.0") // for JVM platform
+    implementation("org.apache.commons:commons-text:1.12.0")
     testImplementation(kotlin("test"))
 }
 

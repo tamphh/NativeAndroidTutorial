@@ -1,12 +1,15 @@
 package org.example
 
+import org.example.Constants.Language.Default
+
 object Parser {
-    fun parseData (data: List<List<String>>): List<Record> {
+    fun parseData (data: List<List<String>>): Map<String,List<Record>> {
         val dataList = mutableListOf<Record>()
         val localesMap = mutableMapOf<Int, String>()
 
         // must follow order:
-        // comment;untranslatable;key;en;es;{other languages}...
+        // Default is English language
+        // comment;untranslatable;key;Default;es;{other languages}...
         val headerIndex = 0
         val commentIndex = 0
         val untranslatableIndex = 1
@@ -22,16 +25,36 @@ object Parser {
             var comment = ""
             var untranslatable = false
             var key = ""
-            for ((fieldIndex, field) in line.withIndex()) {
+            for ((fieldIndex, value) in line.withIndex()) {
                 val locale = localesMap[fieldIndex] ?: continue
                 when(fieldIndex) {
-                    commentIndex -> comment = field
-                    untranslatableIndex -> untranslatable = field.lowercase() == "true"
-                    keyIndex -> key = field
-                    else -> dataList.add(Record(key, field, locale, untranslatable, comment))
+                    commentIndex -> comment = value
+                    untranslatableIndex -> untranslatable = value.equalsIgnoreCase("true")
+                    keyIndex -> key = value
+                    else -> dataList.add(Record(key, value, locale, untranslatable, comment))
                 }
             }
         }
-        return dataList
+        val result = dataList
+            .filterNot { it.locale.isEmpty() }
+            .groupBy { it.locale }
+        val englishRecords = result[Default]
+        result.values
+            .forEach { fillEnglishValueIfNeeded(englishRecords, it) }
+        return result
+    }
+
+    private fun fillEnglishValueIfNeeded(englishRecords: List<Record>?, otherLanguageRecords: List<Record>) {
+        if (englishRecords == null) {
+            return
+        }
+        for ((index, record) in englishRecords.withIndex()) {
+            otherLanguageRecords[index].apply {
+               if (value.isEmpty()) {
+                   value = record.value
+               }
+            }
+        }
+        println(otherLanguageRecords)
     }
 }

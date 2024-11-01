@@ -1,6 +1,7 @@
 package org.example
 
 import kotlinx.coroutines.*
+import org.example.Constants.Language.Default
 import org.example.Constants.Platform.Android
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -8,11 +9,15 @@ import org.example.Constants.Platform.Android
 fun main() {
     runBlocking {
         Parser.parseData(Reader.readFile("src/main/resources/android.csv"))
-            .filterNot { it.locale.isEmpty() }
-            .groupBy { it.locale }
             .forEach { (locale, records) ->
                 launch(Dispatchers.IO) {
-                    Writer.writeFile(Android, locale, records)
+                    Writer.writeFile(
+                        Android,
+                        locale,
+                        records.filterNot {
+                            !it.locale.equalsIgnoreCase(Default) && it.untranslatable
+                        }
+                    )
                 }
             }
     }
