@@ -1,6 +1,6 @@
 package org.example
-import org.example.Constants.Platform.Android
-import org.example.Constants.Platform.iOS
+import org.example.Constants.Platform.ANDROID
+import org.example.Constants.Platform.IOS
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
@@ -10,39 +10,31 @@ object Writer {
     fun writeFile(
         platform: String,
         locale: String,
-        records: List<Record>,
-        debugFlag: Boolean = false
+        records: List<Record>
     ) {
         val fileName = getFilename(platform, locale)
         val dataWriter = BufferedWriter(FileWriter(fileName))
 
         try {
+            // Pre tag header
             val preText = getPreText(platform)
             dataWriter.write(preText)
             dataWriter.flush()
 
-            if (debugFlag) {
-                println("Written $preText to $fileName")
-            }
-
-            for (record in records) {
-                val formatted = getFormattedEntry(platform, record)
+            records.forEach {
+                val formatted = getFormattedEntry(platform, it)
                 dataWriter.write(formatted)
                 dataWriter.flush()
-
-                if (debugFlag) {
-                    println("\nWritten $formatted to $fileName")
-                }
             }
 
+            // Post tag header
             val postText = getPostText(platform)
             dataWriter.write(postText)
             dataWriter.flush()
 
             println("$fileName finished")
-
         } catch (e: IOException) {
-            System.err.println("Failed creating file: ${e.message}")
+            System.err.println("Failed creating file: $fileName")
         } finally {
             dataWriter.close()
         }
@@ -61,8 +53,8 @@ object Writer {
             }
         }
         return when (platform) {
-            Android -> androidEntry(record.untranslatable)
-            iOS -> "\"$key\" = \"$value\";\n"
+            ANDROID -> androidEntry(record.untranslatable)
+            IOS -> "\"$key\" = \"$value\";\n"
             else -> "$key: \"$value\",\n"
         }.let {
             if (comment?.isNotEmpty() == true) {
@@ -76,8 +68,8 @@ object Writer {
     private fun getFilename(platform: String, locale: String): String {
         val outputFolder = createOutputFolder(platform, locale)
         return when (platform) {
-            Android -> "strings.xml"
-            iOS -> "Localizable.strings"
+            ANDROID -> "strings.xml"
+            IOS -> "Localizable.strings"
             else -> "strings_$locale.ts"
         }.let {
             "$outputFolder/$it"
@@ -87,8 +79,8 @@ object Writer {
     private fun createOutputFolder(platform: String, locale: String): String {
         val dirName = "exported"
         val folder = when (platform) {
-            Android -> "$dirName/values-$locale"
-            iOS -> "$dirName/$locale.lproj"
+            ANDROID -> "$dirName/values-$locale"
+            IOS -> "$dirName/$locale.lproj"
             else -> dirName
         }
         File(folder).mkdirs()
@@ -105,11 +97,9 @@ object Writer {
 
     private fun getPostText(platform: String): String {
         return when (platform) {
-            Android -> "</resources>"
-            iOS -> ""
+            ANDROID -> "</resources>"
+            IOS -> ""
             else -> "}\n\nexport default LOCALIZED_STRINGS;"
         }
     }
-
-
 }

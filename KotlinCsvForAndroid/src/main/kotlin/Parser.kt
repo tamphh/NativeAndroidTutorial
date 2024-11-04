@@ -1,15 +1,15 @@
 package org.example
 
-import org.example.Constants.Language.Default
+import org.example.Constants.Language.DEFAULT
 
 object Parser {
-    fun parseData (data: List<List<String>>): Map<String,List<Record>> {
+    fun parseData (data: List<List<String>>, fillEmptyValue: Boolean = false): Map<String,List<Record>> {
         val dataList = mutableListOf<Record>()
         val localesMap = mutableMapOf<Int, String>()
 
         // must follow order:
-        // Default is English language
         // comment;untranslatable;key;Default;es;{other languages}...
+        // Default is English language
         val headerIndex = 0
         val commentIndex = 0
         val untranslatableIndex = 1
@@ -38,13 +38,14 @@ object Parser {
         val result = dataList
             .filterNot { it.locale.isEmpty() }
             .groupBy { it.locale }
-        val englishRecords = result[Default]
-        result.values
-            .forEach { fillEnglishValueIfNeeded(englishRecords, it) }
+        if (fillEmptyValue)  {
+            result.values
+                .forEach { fillDefaultValue(result[DEFAULT], it) }
+        }
         return result
     }
 
-    private fun fillEnglishValueIfNeeded(englishRecords: List<Record>?, otherLanguageRecords: List<Record>) {
+    private fun fillDefaultValue(englishRecords: List<Record>?, otherLanguageRecords: List<Record>) {
         if (englishRecords == null) {
             return
         }
@@ -55,6 +56,5 @@ object Parser {
                }
             }
         }
-        println(otherLanguageRecords)
     }
 }

@@ -2,12 +2,11 @@ package org.example
 
 object Constants {
     object Platform {
-        const val iOS = "ios"
-        const val Android = "android"
+        const val IOS = "ios"
+        const val ANDROID = "android"
     }
 
     object Language {
-        const val English = "en"
-        const val Default = "Default"
+        const val DEFAULT = "Default"
     }
 }
