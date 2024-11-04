@@ -14,20 +14,17 @@ import org.example.Writer.writeFile
 fun main() {
     runBlocking {
         parseData(
-            readFile("src/main/resources/android.csv"),
+            readFile("src/main/resources/sample.csv", ';'),
             true
         )
         .forEach { (locale, records) ->
-            val newLocales = listOf("hi","ar","it","ko","th","vi")
-            if (newLocales.contains(locale)) {
-                launch(Dispatchers.IO) {
-                    val filteredRecords =
-                        records.filterNot {
-                            (!it.locale.equalsIgnoreCase(DEFAULT) && it.untranslatable) ||
-                                    it.value.isEmpty()
-                        }
-                    writeFile(ANDROID, locale, filteredRecords)
-                }
+            launch(Dispatchers.IO) {
+                val filteredRecords =
+                    records.filterNot {
+                        (!it.locale.equalsIgnoreCase(DEFAULT) && it.untranslatable) ||
+                                it.value.isEmpty()
+                    }
+                writeFile(ANDROID, locale, filteredRecords)
             }
         }
     }
